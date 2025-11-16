@@ -37,8 +37,6 @@
   <text
      style="font-weight:800;font-size:84.0328px;line-height:1.1;font-family:'JetBrains Mono';-inkscape-font-specification:'JetBrains Mono Ultra-Bold';text-align:center;letter-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;stroke:#ffffff;stroke-width:12.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
      id="text1">
-     <tspan sodipodi:role="line" x="0" y="0" id="tspan2">PLACEHOLDER</tspan>
-     <tspan sodipodi:role="line" x="0" y="1.1em" id="tspan2">PLACEHOLDER</tspan>
-     <tspan sodipodi:role="line" x="0" y="2.2em" id="tspan2">PLACEHOLDER</tspan>
+     PLACEHOLDER
   </text>
 </svg>

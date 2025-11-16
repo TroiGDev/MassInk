@@ -1,8 +1,15 @@
 import shutil
 import pathlib
 import subprocess
+import json
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+#returns json string array as python string array
+def readJsonContents(filepath):
+    with open(filepath, "r") as f:
+        data = json.load(f)
+    return data.get("contents", [])
 
 def moveFile(filePath, destinationPath):
     #convert string path to lib path
@@ -30,21 +37,66 @@ def exportSVGasPNG(inkscapePath, svgPath, pngPath):
 
     subprocess.run(command, shell=True, check=True)
 
+#get style code
+def getStyleCodeAsString(stylePath):
+    with open(stylePath, "r", encoding="utf-8") as f:
+        svg = f.read()
+    return svg
+
+def generateTspans(outputString):
+    #generate correct svg fromat code
+    outputString = outputString
+    lines = outputString.split("|")
+    tspanString = ""
+
+    codeSegment = '<tspan sodipodi:role="line" x="0" y="Yem" id="tspan2">PLACEHOLDER</tspan>'
+    for i in range(len(lines)):
+        linesCodeSegment = codeSegment
+        Y = str(1.1 * i)
+        linesCodeSegment = linesCodeSegment.replace("Y", Y)
+        linesCodeSegment = linesCodeSegment.replace("PLACEHOLDER", lines[i])
+        tspanString += linesCodeSegment
+    
+    return tspanString
+
+def generateNewSVG(svgCode, tspanString, outputSVGname):
+    #replace placeholder with the correct svg fromat code
+    svgCode = svgCode.replace("PLACEHOLDER", tspanString)
+
+    #generate a new svg with the right output text
+    with open(outputSVGname, "w", encoding="utf-8") as f:
+        f.write(svgCode)
+
+def singleAssetPipeline(svgPath, outputString, outputSVGdestination, outputSVGname, inkscapePath, outputPNGdestination, outputPNGname):
+    """
+    -duplicate style svg code for replacing and svg format style
+    -generate tspan svg code from the python string
+    -generate new svg (replace PLACEHOLDER in duplicated svg code with the generated tspan code)
+    -export duplicate svg contents as png (moves png to destination by default)
+    -move svg to destination folder
+    """
+
+    svg = getStyleCodeAsString(svgPath)
+
+    tspanString = generateTspans(outputString)
+
+    generateNewSVG(svg, tspanString, outputSVGname)
+
+    #export the new svg as png
+    pngPaths = outputPNGdestination + "/" + outputPNGname
+    exportSVGasPNG(inkscapePath, outputSVGname, pngPaths)
+
+    #move new svg to SVGs
+    moveFile(outputSVGname, outputSVGdestination)
+
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#get style code
-with open("Source/style.svg", "r", encoding="utf-8") as f:
-    svg = f.read()
+#multiple assets pipeline:
 
-#replace placeholder with correct output text
-svg = svg.replace("PLACEHOLDER", "Banana is good")
+contentStrings = readJsonContents("Source/contents.json")
 
-#generate a new svg with the right output text
-with open("output.svg", "w", encoding="utf-8") as f:
-    f.write(svg)
+for i in range(len(contentStrings)):
+    svgName = "output" + str(i) + ".svg"
+    pngName = "output" + str(i) + ".png"
 
-#export the new svg as png
-exportSVGasPNG(r"C:\Program Files\Inkscape\bin\inkscape.exe", "output.svg", "Source/PNGs/output")
-
-#move new svg to SVGs
-moveFile("output.svg", "Source/SVGs")
+    singleAssetPipeline("Source/style.svg", contentStrings[i], "Source/SVGs", svgName, r"C:\Program Files\Inkscape\bin\inkscape.exe", "Source/PNGs", pngName)
